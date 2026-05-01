@@ -178,6 +178,31 @@ Faster than configuring Tailwind in this starter, and a small component count
 doesn't justify a design system. Status pills are color-coded by status to
 keep the table scannable.
 
+## Security
+
+**Prototype pollution vulnerability (fixed).**
+The original `normalizePlayers()` function used object spread syntax (`...record`)
+to copy Sleeper response data into Player objects. If the Sleeper API ever
+returned malicious keys like `__proto__` or `constructor`, they could pollute
+the prototype chain. The fix explicitly picks only the 18 known fields by name
+with proper type coercion, preventing any unknown keys from being written to
+the object.
+
+**CORS is wide open (`app.use(cors())`).**
+Fine for local development, but before any real deployment this should be
+locked to the client origin via `cors({ origin: process.env.ALLOWED_ORIGIN })`.
+
+**Rate limiting (fixed).**
+Added `express-rate-limit` middleware that caps each IP to 100 requests per 15 minutes
+on `/api/*` routes. Returns 429 (Too Many Requests) if exceeded. Prevents basic
+DDoS and accidental hammering.
+
+**`favoriteIds` sent as URL query param (fixed).**
+Capped at 500 favorites server-side in `normalizeQuery()` using `.slice(0, 500)`.
+Any favorites beyond 500 are silently dropped. Client-side, all favorites are still
+stored in `localStorage`; only the first 500 are sent to the server for filtering.
+Prevents pathologically long URLs from causing issues.
+
 ## Things to ship in another hour
 
 - **Stable list animations + skeleton rows that match the column widths.**

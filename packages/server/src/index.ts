@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { deriveFacets, getPlayers } from './players-cache';
 import { applyQuery, buildResponse, normalizeQuery } from './players-query';
 import type { PlayerDetailResponse } from '@shared/types';
@@ -9,6 +10,13 @@ const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+  message: 'Too many requests, please try again later.',
+});
+app.use('/api/', limiter);
 
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

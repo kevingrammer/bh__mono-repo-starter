@@ -68,22 +68,39 @@ export function peekCache(): CacheEntry | null {
 
 /**
  * Convert the keyed Sleeper object into a normalized array of Player records.
+ * Explicitly picks known fields rather than spreading to prevent prototype pollution.
  */
 export function normalizePlayers(raw: Record<string, Record<string, unknown>>): Player[] {
   const out: Player[] = [];
   for (const [id, record] of Object.entries(raw)) {
     if (!record || typeof record !== 'object') continue;
     const player: Player = {
-      ...record,
+      // Core identity
       player_id: id,
+      // Summary fields
       first_name: emptyToNull(record.first_name),
       last_name: emptyToNull(record.last_name),
       full_name: emptyToNull(record.full_name) ?? null,
       position: emptyToNull(record.position),
       team: emptyToNull(record.team),
       status: emptyToNull(record.status),
+      // Metadata
       active: typeof record.active === 'boolean' ? record.active : null,
       fantasy_positions: normalizeFantasyPositions(record.fantasy_positions),
+      age: typeof record.age === 'number' ? record.age : null,
+      height: emptyToNull(record.height),
+      weight: emptyToNull(record.weight),
+      years_exp: typeof record.years_exp === 'number' ? record.years_exp : null,
+      college: emptyToNull(record.college),
+      birth_date: emptyToNull(record.birth_date),
+      jersey_number: typeof record.jersey_number === 'number' ? record.jersey_number : null,
+      depth_chart_position: emptyToNull(record.depth_chart_position),
+      depth_chart_order: typeof record.depth_chart_order === 'number' ? record.depth_chart_order : null,
+      injury_status: emptyToNull(record.injury_status),
+      injury_body_part: emptyToNull(record.injury_body_part),
+      number: typeof record.number === 'number' ? record.number : null,
+      search_full_name: emptyToNull(record.search_full_name),
+      hashtag: emptyToNull(record.hashtag),
     };
     out.push(player);
   }

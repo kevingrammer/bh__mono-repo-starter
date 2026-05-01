@@ -48,9 +48,6 @@ export interface Player extends PlayerSummary {
   injury_body_part?: string | null;
   number?: number | null;
   hashtag?: string | null;
-
-  // Capture any additional Sleeper fields not explicitly typed
-  [key: string]: unknown;
 }
 
 export interface PlayersQuery {

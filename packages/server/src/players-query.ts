@@ -55,7 +55,8 @@ export function normalizeQuery(input: PlayersQuery | Record<string, unknown>): N
     favoriteIdsRaw
       .split(',')
       .map((s) => s.trim())
-      .filter(Boolean),
+      .filter(Boolean)
+      .slice(0, 500), // cap at 500 favorites
   );
 
   const includeInactive =
