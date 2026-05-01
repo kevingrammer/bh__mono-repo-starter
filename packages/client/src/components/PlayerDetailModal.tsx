@@ -1,0 +1,111 @@
+import { useEffect } from 'react';
+import type { Player } from '@shared/types';
+
+interface Props {
+  player: Player | null;
+  onClose: () => void;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+}
+
+export default function PlayerDetailModal({
+  player,
+  onClose,
+  isFavorite,
+  onToggleFavorite,
+}: Props) {
+  useEffect(() => {
+    if (!player) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [player, onClose]);
+
+  if (!player) return null;
+
+  const display =
+    player.full_name ||
+    `${player.first_name ?? ''} ${player.last_name ?? ''}`.trim() ||
+    player.player_id;
+
+  // Surface a friendly summary up top, then dump the full record so the user
+  // can inspect every field the API returns.
+  const summaryRows: Array<[string, string]> = [
+    ['Position', player.position ?? '—'],
+    ['Team', player.team ?? '—'],
+    ['Status', player.status ?? '—'],
+    ['Age', player.age != null ? String(player.age) : '—'],
+    ['Height', player.height ?? '—'],
+    ['Weight', player.weight ?? '—'],
+    ['Years Exp', player.years_exp != null ? String(player.years_exp) : '—'],
+    ['College', player.college ?? '—'],
+    ['Jersey #', player.jersey_number != null ? String(player.jersey_number) : '—'],
+    ['Injury', player.injury_status ?? '—'],
+  ];
+
+  const fullEntries = Object.entries(player).filter(([, v]) => v !== null && v !== undefined && v !== '');
+
+  return (
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Details for ${display}`}
+      onClick={onClose}
+    >
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <header className="modal-header">
+          <div>
+            <h2>{display}</h2>
+            <p className="muted small">player_id: {player.player_id}</p>
+          </div>
+          <div className="modal-actions">
+            <button
+              className={`fav-btn lg ${isFavorite ? 'on' : ''}`}
+              aria-pressed={isFavorite}
+              onClick={() => onToggleFavorite(player.player_id)}
+              title={isFavorite ? 'Remove favorite' : 'Add favorite'}
+            >
+              {isFavorite ? '★ Favorited' : '☆ Favorite'}
+            </button>
+            <button className="ghost" onClick={onClose} aria-label="Close">
+              ✕
+            </button>
+          </div>
+        </header>
+
+        <section>
+          <h3>Summary</h3>
+          <dl className="summary">
+            {summaryRows.map(([k, v]) => (
+              <div key={k} className="summary-row">
+                <dt>{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <section>
+          <h3>All metadata</h3>
+          <div className="meta-table">
+            {fullEntries.map(([k, v]) => (
+              <div key={k} className="meta-row">
+                <span className="meta-key">{k}</span>
+                <span className="meta-val">
+                  {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
