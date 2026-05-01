@@ -279,6 +279,7 @@ Prevents pathologically long URLs from causing issues.
 
 ## What I'd do with one more hour
 
+This is what AI would have me do:
 - **URL state.** Push filter/sort/page into the query string so the page is
   bookmarkable and browser back/forward works as expected.
 - **Server-side `ETag` / `Cache-Control`.** The list response is deterministic
@@ -293,6 +294,11 @@ Prevents pathologically long URLs from causing issues.
 - **Better empty state.** Currently just "No players match these filters." — it
   should identify which filter is responsible and offer a one-click clear.
 
+This is probably what I would really do:
+- fix tests. Review their value manually
+- look at the ui and use it to see where I could get any extra value and impact for the client in the time remaining, and make those changes. Maybe take 5 before doing so.
+
+
 ## How I used (and didn't use) AI
 
 **Used AI (GitHub Copilot / Claude) for:**
@@ -306,14 +312,14 @@ Prevents pathologically long URLs from causing issues.
   controlled-value wiring).
 - Implementing the backoff schedule and stale-on-failure logic, after deciding
   the strategy myself.
+- Verifying the Sleeper response shape and quirks. Field names, null handling,
+  and the team-defense filtering were checked.
 
 **Did not use AI for:**
 
 - Decisions about what goes server-side vs client-side, cache TTL, the
   `PlayerSummary` / `Player` type split, or the shape of the API response.
   These are the tradeoffs a reviewer will ask about and I wanted to own them.
-- Verifying the Sleeper response shape and quirks. Field names, null handling,
-  and the team-defense filtering were checked against the actual JSON.
 - The overall architecture and data flow.
 
 **Where I caught AI being wrong and overrode it:**
@@ -324,6 +330,10 @@ Prevents pathologically long URLs from causing issues.
   contradicts the spec.
 - Proposed a two-instance `useThemeMode` approach that caused `CssBaseline` to
   override the dark background. Fixed by moving to a single shared context.
+
+**Minor UI changes and fixing it's failures on light/dark mode:**
+- It was struggling to get the dark mode toggle working correctly across the MUI theme and CSS variables, so I updated some of the variables and values to make it make sense.
+- Made small manual changes to display
 
 ## Project layout
 

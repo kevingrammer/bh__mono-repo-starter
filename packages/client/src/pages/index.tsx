@@ -205,7 +205,7 @@ export default function Home() {
                 size="small"
               />
             }
-            label={`Favorites only (${favorites.ids.length})`}
+            label={`Show Favorites Only (${favorites.ids.length})`}
           />
           <FormControlLabel
             title="Sleeper's feed includes retired and historical players. Hidden by default."
