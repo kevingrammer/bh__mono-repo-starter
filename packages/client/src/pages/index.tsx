@@ -143,7 +143,7 @@ export default function Home() {
         <header className="page-header">
           <div>
             <h1>NFL Players</h1>
-            <p className="muted">Live data from the Sleeper API. Cached on the server.</p>
+            <p className="muted">Live data from the Sleeper API.</p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <IconButton
@@ -153,11 +153,6 @@ export default function Home() {
             >
               {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
             </IconButton>
-            {data?.cachedAt && (
-              <p className="muted small">
-                Cached at {new Date(data.cachedAt).toLocaleTimeString()}
-              </p>
-            )}
           </div>
         </header>
 
@@ -228,12 +223,6 @@ export default function Home() {
         <section className="meta-bar">
           <span className="muted small">
             {loading ? 'Loading…' : `Showing ${showingRange} of ${total.toLocaleString()}`}
-            {data?.source && !includeInactive && data.source.rawCount > data.source.usableCount ? (
-              <>
-                {' '}· {data.source.usableCount.toLocaleString()} usable of{' '}
-                {data.source.rawCount.toLocaleString()} in feed
-              </>
-            ) : null}
           </span>
           {(debouncedSearch || position || team || status || favoritesOnly || includeInactive) && (
             <Button

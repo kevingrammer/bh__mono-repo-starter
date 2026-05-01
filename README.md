@@ -89,9 +89,7 @@ Response shape (`packages/shared/src/types.ts → PlayersResponse`):
 ```
 
 The `facets` object is derived from the active dataset and powers the client’s
-filter dropdowns — no second request needed. `source` lets the UI show "X
-usable of Y in feed" so it’s obvious that the default view hides historical
-players.
+filter dropdowns — no second request needed.
 
 ## Sleeper API quirks the server handles
 

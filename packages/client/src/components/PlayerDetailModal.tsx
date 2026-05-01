@@ -77,7 +77,6 @@ export default function PlayerDetailModal({
         <header className="modal-header">
           <div>
             <h2>{display}</h2>
-            <p className="muted small">player_id: {player.player_id}</p>
           </div>
           <div className="modal-actions">
             <Button
