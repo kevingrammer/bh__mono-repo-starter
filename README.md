@@ -1,16 +1,28 @@
 # NFL Players — Sleeper Browser
 
-A small full-stack TypeScript app that surfaces the NFL roster from the
+A full-stack TypeScript app that surfaces the NFL roster from the
 [Sleeper API](https://api.sleeper.app/v1/players/nfl) with searchable, sortable,
-filterable, paginated views, a detail modal, and per-user favorites.
-
-Built against the `bh__mono-repo-starter` (Yarn workspaces, Express, Next.js).
+filterable, paginated views, a player detail modal, and per-user favorites.
+Built with Yarn workspaces, Express, and Next.js.
 
 ## Workspaces
 
-- **packages/shared** — `Player`, `PlayersResponse`, query types shared by both ends.
-- **packages/server** — Express API. Caches Sleeper response in memory; does all filtering/sorting/paginating server-side.
-- **packages/client** — Next.js (pages router) UI: table, filters, modal, favorites.
+| Package | Purpose |
+| --- | --- |
+| `packages/shared` | `Player`, `PlayerSummary`, `PlayersResponse`, and query types shared by both ends |
+| `packages/server` | Express API — caches the Sleeper feed in memory, does all filtering/sorting/paginating server-side |
+| `packages/client` | Next.js (pages router) UI — table, typeahead filters, detail modal, favorites, light/dark mode |
+
+## Features
+
+- **Sortable table** — click any column header (First name, Last name, Position, Status, Team)
+- **Global search** — debounced 300 ms, searches name / team / position
+- **Typeahead filters** — MUI Autocomplete for Position and Team; Select for Status
+- **"Include inactive / historical"** toggle — hides retired players by default
+- **Detail modal** — click any row to fetch the full player record; Escape or backdrop click to dismiss
+- **Favorites** — star icon on each row; "Favorites only" toggle; persisted in `localStorage`
+- **Light / dark mode** — toggle in the top-right corner; preference saved to `localStorage`; respects `prefers-color-scheme` on first visit
+- **Loading skeleton** and **error state with retry**
 
 ## Getting started
 
@@ -73,11 +85,11 @@ yarn type-check
 | `favoriteIds` | comma-separated ids | — | Required when `favoritesOnly=true` |
 | `includeInactive` | `true`/`false` | `false` | Include retired / historical / non-fantasy entries (off by default) |
 
-Response shape (`packages/shared/src/types.ts → PlayersResponse`):
+Response shape:
 
 ```jsonc
 {
-  "players": [/* Player[] */],
+  "players": [/* PlayerSummary[] — 15 fields, not the full record */],
   "total": 1234,
   "page": 1,
   "limit": 25,
@@ -88,8 +100,12 @@ Response shape (`packages/shared/src/types.ts → PlayersResponse`):
 }
 ```
 
-The `facets` object is derived from the active dataset and powers the client’s
-filter dropdowns — no second request needed.
+List responses use the lighter `PlayerSummary` type (15 fields). The detail
+endpoint (`/api/players/:id`) returns the full `Player` record. This split
+keeps list payloads small while giving the modal everything it needs.
+
+The `facets` object powers the client's filter dropdowns — no second request
+needed. `source` lets the UI show "X usable of Y in feed".
 
 ## Sleeper API quirks the server handles
 
@@ -222,10 +238,19 @@ fiddling.
 Easier to dev — no `tsc --watch` step needed. For a real release we'd build
 shared first or publish it; at this size, the simpler dev loop wins.
 
-**Styling: hand-written CSS, no UI library.**
-Faster than configuring Tailwind in this starter, and a small component count
-doesn't justify a design system. Status pills are color-coded by status to
-keep the table scannable.
+**MUI component library.**
+MUI provided Autocomplete (typeahead with keyboard nav), TableSortLabel,
+Pagination, IconButton, and accessible focus management out of the box. These
+would have taken hours to build correctly from scratch and would have been
+harder to make accessible by default.
+*Alternative:* hand-written HTML + CSS. Lower bundle size (~200 KB saved) but
+significantly more dev time and worse accessibility.
+
+**Single shared theme context for light/dark mode.**
+`useThemeMode` runs once in `_app.tsx` and is consumed via React context. This
+ensures MUI's `ThemeProvider` and the CSS `data-theme` attribute stay in sync.
+Running the hook in two places caused the `CssBaseline` background to stay
+white in dark mode until the shared context approach was used.
 
 ## Security
 
@@ -252,69 +277,76 @@ Any favorites beyond 500 are silently dropped. Client-side, all favorites are st
 stored in `localStorage`; only the first 500 are sent to the server for filtering.
 Prevents pathologically long URLs from causing issues.
 
-## Things to ship in another hour
+## What I'd do with one more hour
 
-- **Stable list animations + skeleton rows that match the column widths.**
-  Right now there’s a small flash on every refetch.
 - **URL state.** Push filter/sort/page into the query string so the page is
-  shareable and back/forward works as expected.
-- **Server-side ETag / Cache-Control** so the client benefits from HTTP cache
-  and we get conditional refetch for free when filters don’t change.
-- **Full integration tests.** Use `supertest` to hit the live route with the
-  cache stubbed out.
-- **Stretch: group-by-team summary, infinite scroll, dark mode.** The CSS
-  already uses CSS variables so a dark theme is mostly a `prefers-color-scheme`
-  block.
-- **Better empty state and "search inside a position".** Current search is
-  permissive but doesn't tell the user how filters are combining.
-- **Virtualize the table** if we ever paginate above a few hundred rows.
+  bookmarkable and browser back/forward works as expected.
+- **Server-side `ETag` / `Cache-Control`.** The list response is deterministic
+  for a given cache + query; an ETag lets the browser skip parsing unchanged
+  responses entirely.
+- **Integration tests.** `supertest` against the live Express router with the
+  cache stubbed — covers the HTTP layer the unit tests miss.
+- **Stable skeleton rows.** The loading skeleton uses fixed-height rows; ideally
+  they'd match the actual column widths to avoid layout shift on load.
+- **Virtualized table.** At 2,000+ rows with `includeInactive=true` the DOM
+  gets heavy. `@tanstack/react-virtual` would fix this.
+- **Better empty state.** Currently just "No players match these filters." — it
+  should identify which filter is responsible and offer a one-click clear.
 
 ## How I used (and didn't use) AI
 
-**Used Claude (Sonnet) for:**
+**Used AI (GitHub Copilot / Claude) for:**
 
-- Stubbing out the boilerplate Express handler, the React hooks (`useDebounced`,
-  `useFavorites`), and the CSS scaffold so I could spend my time on logic and
-  edge cases instead of typing out plumbing.
-- Drafting an initial set of unit tests, which I then revised to cover the
-  null-sort-last behavior I actually wanted.
+- Scaffolding boilerplate: the Express handler skeleton, `useDebounced`,
+  `useFavorites`, and the initial CSS layout, so time could go to logic and
+  edge cases rather than plumbing.
+- Drafting the initial unit tests, then revising to cover null-sort-last
+  behavior and in-flight deduplication edge cases.
+- MUI component syntax lookups (slot props, `sx` prop patterns, Autocomplete
+  controlled-value wiring).
+- Implementing the backoff schedule and stale-on-failure logic, after deciding
+  the strategy myself.
 
 **Did not use AI for:**
 
-- Decisions about caching strategy, what to put server-side vs client-side, and
-  the shape of the API response — those are tradeoffs the reviewer will ask
-  about and I want to own them.
-- Verifying the Sleeper response shape and quirks. I sanity-checked field names
-  and null handling against the actual JSON before locking in the types,
-  rather than trusting the model’s recall.
-- Writing the README. AI-written READMEs read like AI-written READMEs.
+- Decisions about what goes server-side vs client-side, cache TTL, the
+  `PlayerSummary` / `Player` type split, or the shape of the API response.
+  These are the tradeoffs a reviewer will ask about and I wanted to own them.
+- Verifying the Sleeper response shape and quirks. Field names, null handling,
+  and the team-defense filtering were checked against the actual JSON.
+- The overall architecture and data flow.
 
-**Where I noticed AI being misleading and corrected it:**
+**Where I caught AI being wrong and overrode it:**
 
-- It initially suggested storing favorites in a JSON file on the server "for
-  cross-device support". With no auth, that just means everyone shares one
-  list — wrong call, and I rejected it.
-- It defaulted to client-side filtering which directly contradicts the spec.
-  Useful reminder to read the requirements myself before asking.
+- Suggested storing favorites in a server-side JSON file "for cross-device
+  support." Without per-user identity that's a single shared list — rejected.
+- Defaulted to client-side filtering in an early draft, which directly
+  contradicts the spec.
+- Proposed a two-instance `useThemeMode` approach that caused `CssBaseline` to
+  override the dark background. Fixed by moving to a single shared context.
 
 ## Project layout
 
 ```
 packages/
-  shared/src/types.ts          # Player, PlayersQuery, PlayersResponse
+  shared/src/types.ts          # Player, PlayerSummary, PlayersResponse
   server/src/
-    index.ts                   # Express app + routes
-    players-cache.ts           # In-memory Sleeper cache + normalization
+    index.ts                   # Express app + routes + rate limiting
+    players-cache.ts           # In-memory cache, normalization, backoff
     players-query.ts           # Pure filter / sort / paginate
     players-query.test.ts      # node:test unit tests
   client/src/
-    pages/index.tsx            # Main page (state + data fetching)
+    pages/
+      _app.tsx                 # ThemeProvider (single shared instance)
+      index.tsx                # Main page — state, data fetching, filters
     components/
-      PlayersTable.tsx
-      PlayerDetailModal.tsx
+      PlayersTable.tsx         # Sortable table with favorites
+      PlayerDetailModal.tsx    # Full player detail modal
     lib/
-      api.ts                   # /api/players client
+      api.ts                   # fetchPlayers + fetchPlayerDetail
       useDebounced.ts
       useFavorites.ts
-    styles/globals.css
+      useTheme.ts              # Theme mode hook + MUI theme factory
+      ThemeContext.tsx         # Shared theme context + AppThemeProvider
+    styles/globals.css         # CSS variables (light + dark), layout
 ```
