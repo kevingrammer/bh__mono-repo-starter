@@ -4,29 +4,29 @@
 
 ```mermaid
 graph TD
-    subgraph Browser
-        UI["Next.js Client\n@client/web · :3000"]
-        LS["localStorage\n(favorites)"]
+    subgraph browser["Browser"]
+        UI["Next.js Client<br/>@client/web :3000"]
+        LS["localStorage<br/>favorites"]
         UI <-->|read/write| LS
     end
 
-    subgraph "Express Server · :3001"
-        API["GET /api/players\n(filter · sort · paginate)"]
-        Cache["In-Memory Cache\n12-hour TTL"]
-        API -->|hits on cache hit| Cache
-        API -->|populates on miss| Cache
+    subgraph server["Express Server :3001"]
+        API["GET /api/players<br/>filter, sort, paginate"]
+        Cache["In-Memory Cache<br/>12-hour TTL"]
+        API -->|cache hit| Cache
+        API -->|cache miss| Cache
     end
 
-    subgraph "Sleeper API (external)"
-        Sleeper["https://api.sleeper.app\n/v1/players/nfl"]
+    subgraph sleeper_api["Sleeper API external"]
+        Sleeper["https://api.sleeper.app<br/>/v1/players/nfl"]
     end
 
-    subgraph "Shared Package"
-        Types["@shared/types\n(Player, PlayersQuery,\nPlayersResponse, …)"]
+    subgraph shared["Shared Package"]
+        Types["@shared/types<br/>Player, PlayersQuery, PlayersResponse"]
     end
 
-    UI -->|"GET /api/players?sort=&page=&q=…\n(proxied by Next.js rewrite)"| API
-    Cache -->|fetch on miss / TTL expired| Sleeper
+    UI -->|"GET /api/players with sort/page/q<br/>proxied by Next.js rewrite"| API
+    Cache -->|fetch on miss or TTL expired| Sleeper
     UI -.->|TypeScript types| Types
     API -.->|TypeScript types| Types
 ```
