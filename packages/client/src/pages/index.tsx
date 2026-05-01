@@ -13,7 +13,7 @@ import TextField from '@mui/material/TextField';
 import type { Player, PlayersResponse, SortDir, SortField } from '@shared/types';
 import PlayersTable from '@/components/PlayersTable';
 import PlayerDetailModal from '@/components/PlayerDetailModal';
-import { fetchPlayers } from '@/lib/api';
+import { fetchPlayers, fetchPlayerDetail } from '@/lib/api';
 import { useDebounced } from '@/lib/useDebounced';
 import { useFavorites } from '@/lib/useFavorites';
 
@@ -109,6 +109,12 @@ export default function Home() {
     [sort],
   );
 
+  const onRowClick = useCallback((playerId: string) => {
+    fetchPlayerDetail(playerId)
+      .then((player) => setSelected(player))
+      .catch((err) => console.error('Failed to fetch player details:', err));
+  }, []);
+
   const positionOptions = data?.facets.positions ?? [];
   const teamOptions = data?.facets.teams ?? [];
   const statusOptions = data?.facets.statuses ?? [];
@@ -147,7 +153,7 @@ export default function Home() {
             placeholder="Search by name, team, position…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            inputProps={{ 'aria-label': 'Search players' }}
+            slotProps={{ input: { 'aria-label': 'Search players' } }}
           />
           <Autocomplete
             size="small"
@@ -269,7 +275,7 @@ export default function Home() {
             sort={sort}
             dir={dir}
             onSortChange={onSortChange}
-            onRowClick={setSelected}
+            onRowClick={onRowClick}
             isFavorite={favorites.has}
             onToggleFavorite={favorites.toggle}
           />

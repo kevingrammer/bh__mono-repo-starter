@@ -1,4 +1,4 @@
-import type { Player, PlayersQuery, PlayersResponse, SortDir, SortField } from '@shared/types';
+import type { Player, PlayerSummary, PlayersQuery, PlayersResponse, SortDir, SortField } from '@shared/types';
 
 /**
  * Pure functions for filtering, sorting and paginating an in-memory list of
@@ -163,6 +163,27 @@ function stringField(p: Player, field: SortField): string {
   return typeof v === 'string' ? v : '';
 }
 
+export function toPlayerSummary(p: Player): PlayerSummary {
+  const summary: PlayerSummary = {
+    player_id: p.player_id,
+    first_name: p.first_name,
+    last_name: p.last_name,
+    full_name: p.full_name,
+    position: p.position,
+    team: p.team,
+    status: p.status,
+    age: p.age,
+    height: p.height,
+    weight: p.weight,
+    years_exp: p.years_exp,
+    college: p.college,
+    jersey_number: p.jersey_number,
+    injury_status: p.injury_status,
+    search_full_name: p.search_full_name,
+  };
+  return summary;
+}
+
 export function buildResponse(
   players: Player[],
   total: number,
@@ -173,7 +194,7 @@ export function buildResponse(
   source: PlayersResponse['source'],
 ): PlayersResponse {
   return {
-    players,
+    players: players.map(toPlayerSummary),
     total,
     page: q.page,
     limit: q.limit,

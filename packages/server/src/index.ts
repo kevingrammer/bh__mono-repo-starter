@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { deriveFacets, getPlayers } from './players-cache';
 import { applyQuery, buildResponse, normalizeQuery } from './players-query';
+import type { PlayerDetailResponse } from '@shared/types';
 
 const app = express();
 const PORT = process.env.PORT || 3001;

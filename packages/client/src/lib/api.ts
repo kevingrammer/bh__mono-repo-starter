@@ -1,4 +1,4 @@
-import type { PlayersResponse } from '@shared/types';
+import type { PlayersResponse, Player, PlayerDetailResponse } from '@shared/types';
 
 export interface FetchPlayersParams {
   q: string;
@@ -49,4 +49,23 @@ export async function fetchPlayers(
     throw new Error(detail || `Request failed (${res.status})`);
   }
   return (await res.json()) as PlayersResponse;
+}
+
+export async function fetchPlayerDetail(
+  playerId: string,
+  signal?: AbortSignal,
+): Promise<Player> {
+  const res = await fetch(`/api/players/${encodeURIComponent(playerId)}`, { signal });
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = body?.message || body?.error || '';
+    } catch {
+      // ignore
+    }
+    throw new Error(detail || `Request failed (${res.status})`);
+  }
+  const body = (await res.json()) as PlayerDetailResponse;
+  return body.player;
 }

@@ -1,15 +1,15 @@
-import type { Player, SortDir, SortField } from '@shared/types';
+import type { PlayerSummary, SortDir, SortField } from '@shared/types';
 import IconButton from '@mui/material/IconButton';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 interface Props {
-  players: Player[];
+  players: PlayerSummary[];
   sort: SortField;
   dir: SortDir;
   onSortChange: (field: SortField) => void;
-  onRowClick: (p: Player) => void;
+  onRowClick: (playerId: string) => void;
   isFavorite: (id: string) => boolean;
   onToggleFavorite: (id: string) => void;
 }
@@ -62,11 +62,11 @@ export default function PlayersTable({
             <tr
               key={p.player_id}
               tabIndex={0}
-              onClick={() => onRowClick(p)}
+              onClick={() => onRowClick(p.player_id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onRowClick(p);
+                  onRowClick(p.player_id);
                 }
               }}
             >

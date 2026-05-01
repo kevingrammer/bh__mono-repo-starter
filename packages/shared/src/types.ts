@@ -9,7 +9,11 @@
 export type SortField = 'last_name' | 'first_name' | 'position' | 'status' | 'team';
 export type SortDir = 'asc' | 'desc';
 
-export interface Player {
+/**
+ * Lightweight summary of a player for list/table views.
+ * Includes only fields used in the UI table and basic metadata.
+ */
+export interface PlayerSummary {
   player_id: string;
   first_name: string | null;
   last_name: string | null;
@@ -17,31 +21,35 @@ export interface Player {
   position: string | null;
   team: string | null;
   status: string | null;
-
-  /** Sleeper sets `active: false` for retired / historical players. */
-  active?: boolean | null;
-  /** Empty/missing for non-fantasy-relevant entries (e.g. some defenses). */
-  fantasy_positions?: string[] | null;
-
-  // Optional metadata surfaced in the detail panel
   age?: number | null;
   height?: string | null;
   weight?: string | null;
   years_exp?: number | null;
   college?: string | null;
-  birth_date?: string | null;
   jersey_number?: number | null;
+  injury_status?: string | null;
+  search_full_name?: string | null;
+}
+
+/**
+ * Full player record from Sleeper, including all metadata.
+ * Used in detail views and kept in server-side cache.
+ */
+export interface Player extends PlayerSummary {
+  /** Sleeper sets `active: false` for retired / historical players. */
+  active?: boolean | null;
+  /** Empty/missing for non-fantasy-relevant entries (e.g. some defenses). */
+  fantasy_positions?: string[] | null;
+
+  // Additional metadata fields from Sleeper
+  birth_date?: string | null;
   depth_chart_position?: string | null;
   depth_chart_order?: number | null;
-  injury_status?: string | null;
   injury_body_part?: string | null;
   number?: number | null;
-  search_full_name?: string | null;
   hashtag?: string | null;
 
-  // Anything else the API hands back. The detail modal renders the full record
-  // so we want to keep extra fields available without forcing the type to know
-  // about every one of them.
+  // Capture any additional Sleeper fields not explicitly typed
   [key: string]: unknown;
 }
 
@@ -65,7 +73,7 @@ export interface PlayersQuery {
 }
 
 export interface PlayersResponse {
-  players: Player[];
+  players: PlayerSummary[];
   total: number;
   page: number;
   limit: number;
@@ -84,6 +92,11 @@ export interface PlayersResponse {
     usableCount: number;
     includedInactive: boolean;
   };
+}
+
+export interface PlayerDetailResponse {
+  player: Player;
+  cachedAt: string | null;
 }
 
 export interface ApiError {

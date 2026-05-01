@@ -107,16 +107,20 @@ function emptyToNull(v: unknown): string | null {
  * entries that an NFL player UI doesn't usually want. Default "usable" view:
  *
  *   p.active === true && p.position && p.fantasy_positions?.length
+ *   && fantasy_positions doesn't only contain 'DEF' (team defenses)
  *
  * This drops:
  *   - retired / historical players (active === false)
  *   - records with no recognizable position
- *   - non-fantasy entries (some defenses, kicker-of-the-week placeholders, etc.)
+ *   - team defenses (fantasy_positions: ['DEF'])
+ *   - non-fantasy entries (kicker-of-the-week placeholders, etc.)
  */
 export function isUsable(p: Player): boolean {
   if (p.active !== true) return false;
   if (!p.position) return false;
   if (!Array.isArray(p.fantasy_positions) || p.fantasy_positions.length === 0) return false;
+  // Exclude team defenses — they only have 'DEF' as a fantasy position
+  if (p.fantasy_positions.length === 1 && p.fantasy_positions[0] === 'DEF') return false;
   return true;
 }
 
