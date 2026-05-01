@@ -1,15 +1,71 @@
 :root {
-  --bg: #f5f7fb;
+  /* Light mode */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --border: #e5e7eb;
-  --text: #1f2937;
-  --muted: #6b7280;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
   --warning: #b45309;
   --danger: #b91c1c;
   --success: #047857;
-  --row-hover: #f3f4f6;
+  --row-hover: #f1f5f9;
+  --table-header-bg: #f8fafc;
+  --skeleton-from: #e2e8f0;
+  --skeleton-to: #f1f5f9;
+  --meta-table-bg: #f8fafc;
+  --alert-error-border: #fecaca;
+  --alert-error-bg: #fef2f2;
+  --fav-color: #f59e0b;
+  --fav-active-bg: #fef3c7;
+  --fav-active-border: #fcd34d;
+  --fav-active-text: #92400e;
+  --pill-bg: #e5e7eb;
+  --pill-text: #374151;
+  --pill-active-bg: #d1fae5;
+  --pill-active-text: #065f46;
+  --pill-inactive-bg: #f3f4f6;
+  --pill-inactive-text: #4b5563;
+  --pill-injured-bg: #fee2e2;
+  --pill-injured-text: #991b1b;
+  --pill-practice-bg: #dbeafe;
+  --pill-practice-text: #1e40af;
+}
+
+[data-theme='dark'] {
+  /* Dark mode */
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --border: #334155;
+  --text: #f1f5f9;
+  --muted: #cbd5e1;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --warning: #f97316;
+  --danger: #f87171;
+  --success: #4ade80;
+  --row-hover: #293548;
+  --table-header-bg: #162032;
+  --skeleton-from: #1e293b;
+  --skeleton-to: #293548;
+  --meta-table-bg: #162032;
+  --alert-error-border: #7f1d1d;
+  --alert-error-bg: #2d0f0f;
+  --fav-color: #fbbf24;
+  --fav-active-bg: #2d1f07;
+  --fav-active-border: #92400e;
+  --fav-active-text: #fde68a;
+  --pill-bg: #334155;
+  --pill-text: #cbd5e1;
+  --pill-active-bg: #064e3b;
+  --pill-active-text: #6ee7b7;
+  --pill-inactive-bg: #1e293b;
+  --pill-inactive-text: #94a3b8;
+  --pill-injured-bg: #450a0a;
+  --pill-injured-text: #fca5a5;
+  --pill-practice-bg: #1e3a5f;
+  --pill-practice-text: #93c5fd;
 }
 
 * {
@@ -63,7 +119,7 @@ button {
 .page-header h1 {
   margin: 0;
   font-size: 1.75rem;
-  color: #111827;
+  color: var(--text);
 }
 
 .page-header p {
@@ -137,8 +193,8 @@ button {
 }
 
 .alert.error {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: var(--alert-error-border);
+  background: var(--alert-error-bg);
   color: var(--danger);
 }
 
@@ -170,7 +226,7 @@ button {
 .skeleton-row {
   height: 2.25rem;
   border-radius: 6px;
-  background: linear-gradient(90deg, #eee 25%, #f6f6f6 50%, #eee 75%);
+  background: linear-gradient(90deg, var(--skeleton-from) 25%, var(--skeleton-to) 50%, var(--skeleton-from) 75%);
   background-size: 200% 100%;
   animation: skeleton 1.4s ease-in-out infinite;
 }
@@ -179,6 +235,7 @@ button {
   from {
     background-position: 200% 0;
   }
+
   to {
     background-position: -200% 0;
   }
@@ -208,7 +265,7 @@ button {
 }
 
 .players-table thead th {
-  background: #f9fafb;
+  background: var(--table-header-bg);
   position: sticky;
   top: 0;
   z-index: 1;
@@ -261,11 +318,11 @@ button {
 }
 
 .fav-btn:hover {
-  color: #f59e0b;
+  color: var(--fav-color);
 }
 
 .fav-btn.on {
-  color: #f59e0b;
+  color: var(--fav-color);
 }
 
 .fav-btn.lg {
@@ -276,9 +333,9 @@ button {
 }
 
 .fav-btn.lg.on {
-  background: #fef3c7;
-  border-color: #fcd34d;
-  color: #92400e;
+  background: var(--fav-active-bg);
+  border-color: var(--fav-active-border);
+  color: var(--fav-active-text);
 }
 
 /* Status pills */
@@ -288,30 +345,30 @@ button {
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
   font-size: 0.8rem;
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--pill-bg);
+  color: var(--pill-text);
 }
 
 .pill-active {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--pill-active-bg);
+  color: var(--pill-active-text);
 }
 
 .pill-inactive {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--pill-inactive-bg);
+  color: var(--pill-inactive-text);
 }
 
 .pill-injured-reserve,
 .pill-physically-unable-to-perform,
 .pill-non-football-injury {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--pill-injured-bg);
+  color: var(--pill-injured-text);
 }
 
 .pill-practice-squad {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--pill-practice-bg);
+  color: var(--pill-practice-text);
 }
 
 /* Pagination */
@@ -384,7 +441,7 @@ button {
   border-radius: 6px;
 }
 
-.modal section + section {
+.modal section+section {
   margin-top: 1.25rem;
 }
 
@@ -426,7 +483,7 @@ button {
   max-height: 320px;
   overflow-y: auto;
   font-size: 0.85rem;
-  background: #f9fafb;
+  background: var(--meta-table-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem 0.75rem;
@@ -459,17 +516,21 @@ button {
   .controls {
     grid-template-columns: 1fr 1fr;
   }
+
   .controls .search {
     grid-column: 1 / -1;
   }
+
   .toggle {
     grid-column: 1 / -1;
     justify-content: center;
     padding: 0.5rem;
   }
+
   .summary {
     grid-template-columns: 1fr;
   }
+
   .meta-row {
     grid-template-columns: 1fr;
     gap: 0;
@@ -480,9 +541,11 @@ button {
   .container {
     padding: 1rem;
   }
+
   .page-header h1 {
     font-size: 1.4rem;
   }
+
   .players-table th,
   .players-table td {
     padding: 0.5rem 0.55rem;

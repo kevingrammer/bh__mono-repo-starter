@@ -6,16 +6,20 @@ import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import MuiPagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import type { Player, PlayersResponse, SortDir, SortField } from '@shared/types';
 import PlayersTable from '@/components/PlayersTable';
 import PlayerDetailModal from '@/components/PlayerDetailModal';
 import { fetchPlayers, fetchPlayerDetail } from '@/lib/api';
 import { useDebounced } from '@/lib/useDebounced';
 import { useFavorites } from '@/lib/useFavorites';
+import { useAppTheme } from '@/lib/ThemeContext';
 
 const PAGE_SIZE = 25;
 
@@ -34,6 +38,7 @@ export default function Home() {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [includeInactive, setIncludeInactive] = useState(false);
   const favorites = useFavorites();
+  const { mode, toggleTheme } = useAppTheme();
 
   const [data, setData] = useState<PlayersResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -140,11 +145,20 @@ export default function Home() {
             <h1>NFL Players</h1>
             <p className="muted">Live data from the Sleeper API. Cached on the server.</p>
           </div>
-          {data?.cachedAt && (
-            <p className="muted small">
-              Cached at {new Date(data.cachedAt).toLocaleTimeString()}
-            </p>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <IconButton
+              onClick={toggleTheme}
+              title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}
+              aria-label="Toggle dark mode"
+            >
+              {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
+            </IconButton>
+            {data?.cachedAt && (
+              <p className="muted small">
+                Cached at {new Date(data.cachedAt).toLocaleTimeString()}
+              </p>
+            )}
+          </div>
         </header>
 
         <section className="controls" aria-label="Filters">

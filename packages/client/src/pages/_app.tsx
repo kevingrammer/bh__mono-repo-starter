@@ -1,12 +1,11 @@
 import type { AppProps } from 'next/app';
-import CssBaseline from '@mui/material/CssBaseline';
+import { AppThemeProvider } from '@/lib/ThemeContext';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <>
-      <CssBaseline />
+    <AppThemeProvider>
       <Component {...pageProps} />
-    </>
+    </AppThemeProvider>
   );
 }

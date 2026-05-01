@@ -13,10 +13,12 @@ interface Props {
   onToggleFavorite: (id: string) => void;
 }
 
-function formatHeight(inches: number | null | undefined): string {
-  if (inches == null) return '—';
-  const feet = Math.floor(inches / 12);
-  const remainingInches = inches % 12;
+function formatHeight(inches: string | number | null | undefined): string {
+  if (!inches) return '—';
+  const num = typeof inches === 'string' ? parseInt(inches, 10) : inches;
+  if (isNaN(num)) return '—';
+  const feet = Math.floor(num / 12);
+  const remainingInches = num % 12;
   return `${feet}'${remainingInches}"`;
 }
 
