@@ -27,6 +27,10 @@ import type { Player } from '@shared/types';
 const SLEEPER_URL = 'https://api.sleeper.app/v1/players/nfl';
 const DEFAULT_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
+// Exponential backoff: 30s, 1m, 2m, 4m, … capped at 10 minutes.
+const BACKOFF_BASE_MS = 1000 * 30;
+const BACKOFF_MAX_MS = 1000 * 60 * 10;
+
 export interface CacheEntry {
   /** All normalized players, including retired / historical / non-fantasy. */
   allPlayers: Player[];
@@ -52,6 +56,8 @@ let options: Required<CacheOptions> = {
   ttlMs: DEFAULT_TTL_MS,
   fetchImpl: fetch,
 };
+let failureCount = 0;
+let nextRetryAt = 0; // epoch ms; 0 means "retry immediately"
 
 export function configureCache(opts: CacheOptions): void {
   options = { ...options, ...opts } as Required<CacheOptions>;
@@ -60,6 +66,8 @@ export function configureCache(opts: CacheOptions): void {
 export function clearCache(): void {
   cache = null;
   inflight = null;
+  failureCount = 0;
+  nextRetryAt = 0;
 }
 
 export function peekCache(): CacheEntry | null {
@@ -164,6 +172,20 @@ export async function getPlayers(force = false): Promise<CacheEntry> {
   }
   if (inflight) return inflight;
 
+  // If the last fetch failed and we're still within the backoff window,
+  // serve stale data rather than hammering Sleeper while it's down.
+  if (!force && failureCount > 0 && now < nextRetryAt) {
+    if (cache) {
+      const retryInSec = Math.round((nextRetryAt - now) / 1000);
+      console.warn(
+        `[players-cache] In backoff after ${failureCount} failure(s). ` +
+          `Serving stale cache. Retry in ${retryInSec}s.`,
+      );
+      return cache;
+    }
+    // No stale data at all — have to try anyway.
+  }
+
   inflight = (async () => {
     const res = await options.fetchImpl(SLEEPER_URL);
     if (!res.ok) {
@@ -183,7 +205,28 @@ export async function getPlayers(force = false): Promise<CacheEntry> {
   })();
 
   try {
-    return await inflight;
+    const entry = await inflight;
+    // Successful fetch — reset backoff.
+    failureCount = 0;
+    nextRetryAt = 0;
+    return entry;
+  } catch (err) {
+    // Increment backoff: delay doubles each failure, capped at BACKOFF_MAX_MS.
+    failureCount += 1;
+    const delay = Math.min(BACKOFF_BASE_MS * 2 ** (failureCount - 1), BACKOFF_MAX_MS);
+    nextRetryAt = Date.now() + delay;
+    const delaySec = Math.round(delay / 1000);
+
+    if (cache) {
+      const ageMin = Math.round((Date.now() - cache.cachedAt.getTime()) / 60_000);
+      console.warn(
+        `[players-cache] Sleeper fetch failed (${(err as Error).message}). ` +
+          `Failure #${failureCount}; next retry in ${delaySec}s. ` +
+          `Serving stale cache from ${ageMin} minute(s) ago.`,
+      );
+      return cache;
+    }
+    throw err;
   } finally {
     inflight = null;
   }

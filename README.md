@@ -122,6 +122,57 @@ Treat the feed as a *daily-cached lookup table*, not a clean query API.
   guard. We hit Sleeper at most once per process lifetime under normal use,
   well under the informal 1000 req/min limit.
 
+## API caching strategy
+
+The server caches the entire Sleeper players feed in memory for 12 hours.
+
+```
+Request
+  → cache fresh?          → return cache (instant)
+  → fetch already running? → wait on same Promise (dedup)
+  → Sleeper up?           → fetch, normalize, store, reset backoff
+  → Sleeper down?
+      → stale cache exists? → return stale data, schedule retry with backoff
+      → no cache at all?   → throw (caller gets 500)
+```
+
+**Why in-memory TTL:**
+Sleeper recommends polling the feed at most once per day. The payload is ~5–10MB
+and contains ~11k records. Fetching it per-request would be both wasteful and
+likely to get the server rate-limited. A module-level variable is zero-infra and
+the data changes infrequently enough that 12 hours is safe.
+
+**In-flight deduplication:**
+A single `Promise` is stored while a fetch is in progress. Any concurrent
+request that arrives with a stale cache waits on the same `Promise` rather than
+fanning out into multiple simultaneous Sleeper requests.
+
+**Stale-on-failure:**
+If a refresh fetch fails (Sleeper is down, network blip, etc.), the server
+returns the last good cache entry rather than propagating a 500. A warning is
+logged with the cache age. The error is only re-thrown if there is no stale
+entry to fall back on (i.e., the very first fetch on a cold start fails).
+
+**Exponential backoff:**
+After a failed fetch, the server enforces a back-off window before attempting
+another Sleeper request. Subsequent failures within the window return stale data
+immediately without hitting Sleeper again. The schedule:
+
+| Failure | Delay |
+| --- | --- |
+| 1st | 30 s |
+| 2nd | 60 s |
+| 3rd | 2 min |
+| 4th | 4 min |
+| 5th+ | 10 min (cap) |
+
+Backoff resets to zero on the first successful fetch.
+
+**Trade-offs / known gaps:**
+- Cache is lost on server restart (cold-start penalty: one blocking Sleeper fetch).
+- Not shared across multiple server instances. Add Redis if horizontally scaling.
+- No ETag / `If-Modified-Since` toward Sleeper, so every refresh fetches the full payload.
+
 ## Major decisions and trade-offs
 
 **In-memory cache with a 12 hour TTL, refreshed on demand.**
