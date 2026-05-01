@@ -1,4 +1,8 @@
 import type { Player, SortDir, SortField } from '@shared/types';
+import IconButton from '@mui/material/IconButton';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 interface Props {
   players: Player[];
@@ -35,17 +39,19 @@ export default function PlayersTable({
             <th aria-label="favorite" className="fav-col" />
             {COLUMNS.map((c) => {
               const active = sort === c.key;
-              const arrow = active ? (dir === 'asc' ? '▲' : '▼') : '';
               return (
                 <th
                   key={c.key}
                   scope="col"
                   aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
                 >
-                  <button className="th-btn" onClick={() => onSortChange(c.key)}>
-                    <span>{c.label}</span>
-                    <span className="sort-arrow">{arrow}</span>
-                  </button>
+                  <TableSortLabel
+                    active={active}
+                    direction={active ? dir : 'asc'}
+                    onClick={() => onSortChange(c.key)}
+                  >
+                    {c.label}
+                  </TableSortLabel>
                 </th>
               );
             })}
@@ -65,14 +71,15 @@ export default function PlayersTable({
               }}
             >
               <td className="fav-col" onClick={(e) => e.stopPropagation()}>
-                <button
-                  className={`fav-btn ${isFavorite(p.player_id) ? 'on' : ''}`}
+                <IconButton
+                  size="small"
                   aria-pressed={isFavorite(p.player_id)}
                   aria-label={isFavorite(p.player_id) ? 'Unfavorite' : 'Favorite'}
                   onClick={() => onToggleFavorite(p.player_id)}
+                  color={isFavorite(p.player_id) ? 'warning' : 'default'}
                 >
-                  {isFavorite(p.player_id) ? '★' : '☆'}
-                </button>
+                  {isFavorite(p.player_id) ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+                </IconButton>
               </td>
               <td>{p.first_name ?? '—'}</td>
               <td>{p.last_name ?? '—'}</td>

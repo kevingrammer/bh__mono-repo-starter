@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Head from 'next/head';
+import type { SelectChangeEvent } from '@mui/material/Select';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import FormControl from '@mui/material/FormControl';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import MenuItem from '@mui/material/MenuItem';
+import MuiPagination from '@mui/material/Pagination';
+import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import type { Player, PlayersResponse, SortDir, SortField } from '@shared/types';
 import PlayersTable from '@/components/PlayersTable';
 import PlayerDetailModal from '@/components/PlayerDetailModal';
@@ -132,69 +142,67 @@ export default function Home() {
         </header>
 
         <section className="controls" aria-label="Filters">
-          <input
-            type="search"
+          <TextField
+            size="small"
             placeholder="Search by name, team, position…"
-            className="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            aria-label="Search players"
+            inputProps={{ 'aria-label': 'Search players' }}
           />
-          <select
-            value={position}
-            onChange={(e) => setPosition(e.target.value)}
-            aria-label="Filter by position"
-          >
-            <option value="">All positions</option>
-            {positionOptions.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-          <select
-            value={team}
-            onChange={(e) => setTeam(e.target.value)}
-            aria-label="Filter by team"
-          >
-            <option value="">All teams</option>
-            {teamOptions.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            aria-label="Filter by status"
-          >
-            <option value="">All statuses</option>
-            {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <label className="toggle">
-            <input
-              type="checkbox"
-              checked={favoritesOnly}
-              onChange={(e) => setFavoritesOnly(e.target.checked)}
-            />
-            <span>Favorites only ({favorites.ids.length})</span>
-          </label>
-          <label
-            className="toggle"
+          <Autocomplete
+            size="small"
+            options={positionOptions}
+            value={position || null}
+            onChange={(_, val) => setPosition(val ?? '')}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="All positions" aria-label="Filter by position" />
+            )}
+            sx={{ minWidth: 160 }}
+          />
+          <Autocomplete
+            size="small"
+            options={teamOptions}
+            value={team || null}
+            onChange={(_, val) => setTeam(val ?? '')}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="All teams" aria-label="Filter by team" />
+            )}
+            sx={{ minWidth: 160 }}
+          />
+          <FormControl size="small">
+            <Select
+              value={status}
+              onChange={(e: SelectChangeEvent) => setStatus(e.target.value)}
+              displayEmpty
+              inputProps={{ 'aria-label': 'Filter by status' }}
+            >
+              <MenuItem value="">All statuses</MenuItem>
+              {statusOptions.map((s) => (
+                <MenuItem key={s} value={s}>{s}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={favoritesOnly}
+                onChange={(e) => setFavoritesOnly(e.target.checked)}
+                size="small"
+              />
+            }
+            label={`Favorites only (${favorites.ids.length})`}
+          />
+          <FormControlLabel
             title="Sleeper's feed includes retired and historical players. Hidden by default."
-          >
-            <input
-              type="checkbox"
-              checked={includeInactive}
-              onChange={(e) => setIncludeInactive(e.target.checked)}
-            />
-            <span>Include inactive / historical</span>
-          </label>
+            control={
+              <Checkbox
+                checked={includeInactive}
+                onChange={(e) => setIncludeInactive(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Include inactive / historical"
+          />
         </section>
 
         <section className="meta-bar">
@@ -208,8 +216,9 @@ export default function Home() {
             ) : null}
           </span>
           {(debouncedSearch || position || team || status || favoritesOnly || includeInactive) && (
-            <button
-              className="link"
+            <Button
+              variant="text"
+              size="small"
               onClick={() => {
                 setSearchInput('');
                 setPosition('');
@@ -220,7 +229,7 @@ export default function Home() {
               }}
             >
               Clear filters
-            </button>
+            </Button>
           )}
         </section>
 
@@ -228,8 +237,8 @@ export default function Home() {
           <div className="alert error" role="alert">
             <strong>Couldn’t load players.</strong>
             <p>{error}</p>
-            <button
-              className="primary"
+            <Button
+              variant="contained"
               onClick={() => {
                 // Force a refetch by toggling sort dir back-and-forth would
                 // be ugly; just call setPage(p=>p) to retrigger the effect.
@@ -238,7 +247,7 @@ export default function Home() {
               }}
             >
               Retry
-            </button>
+            </Button>
           </div>
         ) : null}
 
@@ -268,18 +277,12 @@ export default function Home() {
 
         {data && data.totalPages > 1 ? (
           <nav className="pagination" aria-label="Pagination">
-            <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              ← Prev
-            </button>
-            <span className="muted small">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next →
-            </button>
+            <MuiPagination
+              count={totalPages}
+              page={page}
+              onChange={(_, p) => setPage(p)}
+              siblingCount={1}
+            />
           </nav>
         ) : null}
 

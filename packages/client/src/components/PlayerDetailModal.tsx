@@ -1,4 +1,9 @@
 import { useEffect } from 'react';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import type { Player } from '@shared/types';
 
 interface Props {
@@ -66,17 +71,19 @@ export default function PlayerDetailModal({
             <p className="muted small">player_id: {player.player_id}</p>
           </div>
           <div className="modal-actions">
-            <button
-              className={`fav-btn lg ${isFavorite ? 'on' : ''}`}
+            <Button
+              variant={isFavorite ? 'contained' : 'outlined'}
+              color="warning"
+              startIcon={isFavorite ? <StarIcon /> : <StarBorderIcon />}
               aria-pressed={isFavorite}
               onClick={() => onToggleFavorite(player.player_id)}
               title={isFavorite ? 'Remove favorite' : 'Add favorite'}
             >
-              {isFavorite ? '★ Favorited' : '☆ Favorite'}
-            </button>
-            <button className="ghost" onClick={onClose} aria-label="Close">
-              ✕
-            </button>
+              {isFavorite ? 'Favorited' : 'Favorite'}
+            </Button>
+            <IconButton onClick={onClose} aria-label="Close">
+              <CloseIcon />
+            </IconButton>
           </div>
         </header>
 
