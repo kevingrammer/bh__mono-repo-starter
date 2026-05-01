@@ -13,6 +13,13 @@ interface Props {
   onToggleFavorite: (id: string) => void;
 }
 
+function formatHeight(inches: number | null | undefined): string {
+  if (inches == null) return '—';
+  const feet = Math.floor(inches / 12);
+  const remainingInches = inches % 12;
+  return `${feet}'${remainingInches}"`;
+}
+
 export default function PlayerDetailModal({
   player,
   onClose,
@@ -46,8 +53,8 @@ export default function PlayerDetailModal({
     ['Team', player.team ?? '—'],
     ['Status', player.status ?? '—'],
     ['Age', player.age != null ? String(player.age) : '—'],
-    ['Height', player.height ?? '—'],
-    ['Weight', player.weight ?? '—'],
+    ['Height', formatHeight(player.height)],
+    ['Weight', player.weight != null ? `${player.weight} lbs` : '—'],
     ['Years Exp', player.years_exp != null ? String(player.years_exp) : '—'],
     ['College', player.college ?? '—'],
     ['Jersey #', player.jersey_number != null ? String(player.jersey_number) : '—'],
